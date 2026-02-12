@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/PublicSafetyLab.Api/Dockerfile
+    image: public-safety-lab-api:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - AwsResources__UseAws=true
+      - AwsResources__Region=${AWS_REGION}
+      - AwsResources__IncidentTableName=${INCIDENT_TABLE_NAME}
+      - AwsResources__EvidenceBucketName=${EVIDENCE_BUCKET_NAME}
+      - AwsResources__IncidentQueueUrl=${INCIDENT_QUEUE_URL}
+
+  worker:
+    build:
+      context: .
+      dockerfile: src/PublicSafetyLab.Worker/Dockerfile
+    image: public-safety-lab-worker:latest
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      - AwsResources__UseAws=true
+      - AwsResources__Region=${AWS_REGION}
+      - AwsResources__IncidentTableName=${INCIDENT_TABLE_NAME}
+      - AwsResources__EvidenceBucketName=${EVIDENCE_BUCKET_NAME}
+      - AwsResources__IncidentQueueUrl=${INCIDENT_QUEUE_URL}

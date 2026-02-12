@@ -1,0 +1,64 @@
+<a routerLink="/" class="back-link">Back to incidents</a>
+
+@if (error(); as message) {
+  <p class="error">{{ message }}</p>
+}
+
+@if (incident(); as current) {
+  <section class="panel">
+    <h1>{{ current.title }}</h1>
+    <p>{{ current.description }}</p>
+    <p><strong>Status:</strong> {{ current.status }}</p>
+    <p><strong>Priority:</strong> {{ current.priority }}</p>
+    <p><strong>Location:</strong> {{ current.location }}</p>
+  </section>
+
+  <section class="panel">
+    <h2>Create Evidence Upload URL</h2>
+    <form [formGroup]="uploadForm" (ngSubmit)="requestUploadUrl()" class="form-grid">
+      <label>
+        File name
+        <input formControlName="fileName" placeholder="scene-01.jpg" />
+      </label>
+
+      <label>
+        Content type
+        <input formControlName="contentType" />
+      </label>
+
+      <button type="submit">Generate URL</button>
+    </form>
+
+    @if (uploadResult(); as url) {
+      <p class="upload-url">Generated URL: <code>{{ url }}</code></p>
+    }
+  </section>
+
+  <section class="panel">
+    <h2>Queue Processing</h2>
+    <form [formGroup]="processForm" (ngSubmit)="queueProcessing()" class="form-grid">
+      <label>
+        Reason
+        <input formControlName="reason" />
+      </label>
+
+      <button type="submit">Queue</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Evidence</h2>
+    @if (current.evidence.length === 0) {
+      <p>No evidence yet.</p>
+    } @else {
+      <ul>
+        @for (item of current.evidence; track item.objectKey) {
+          <li>
+            <strong>{{ item.fileName }}</strong>
+            <span>{{ item.objectKey }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

@@ -1,0 +1,66 @@
+<section class="hero">
+  <h1>Public Safety Incident Console</h1>
+  <p>Capture field incidents, attach evidence metadata, and dispatch asynchronous processing jobs.</p>
+</section>
+
+<section class="panel">
+  <h2>Create Incident</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+    <label>
+      Title
+      <input formControlName="title" placeholder="Bridge obstruction" />
+    </label>
+
+    <label>
+      Priority
+      <select formControlName="priority">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+        <option value="Critical">Critical</option>
+      </select>
+    </label>
+
+    <label>
+      Location
+      <input formControlName="location" placeholder="M-59 / Rochester Rd" />
+    </label>
+
+    <label class="description-field">
+      Description
+      <textarea formControlName="description" rows="3" placeholder="Describe current conditions..."></textarea>
+    </label>
+
+    <button type="submit">Create Incident</button>
+  </form>
+
+  @if (error(); as message) {
+    <p class="error">{{ message }}</p>
+  }
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Active Incidents</h2>
+    <button type="button" (click)="refreshIncidents()">Refresh</button>
+  </div>
+
+  @if (isLoading()) {
+    <p>Loading incidents...</p>
+  } @else if (incidents().length === 0) {
+    <p>No incidents yet.</p>
+  } @else {
+    <ul class="incident-list">
+      @for (incident of incidents(); track incident.incidentId) {
+        <li>
+          <a [routerLink]="['/incidents', incident.incidentId]">
+            <strong>{{ incident.title }}</strong>
+            <span>{{ incident.priority }} · {{ incident.status }}</span>
+            <span>{{ incident.location }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

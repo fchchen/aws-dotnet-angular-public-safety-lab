@@ -1,0 +1,8 @@
+project_name   = "public-safety-lab"
+environment    = "dev"
+aws_region     = "us-east-1"
+instance_type  = "t3.micro"
+allow_ssh_cidr = "YOUR_IP/32"
+ssh_key_name   = "your-existing-keypair"
+alert_email    = "you@example.com"
+enable_ec2     = true
