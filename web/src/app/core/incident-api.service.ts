@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-base-url.token';
 import {
@@ -17,7 +17,11 @@ export class IncidentApiService {
   private readonly baseUrl = inject(API_BASE_URL);
 
   listIncidents(status?: string): Observable<IncidentSummaryDto[]> {
-    const params = status ? { status } : {};
+    let params = new HttpParams();
+    if (status) {
+      params = params.set('status', status);
+    }
+
     return this.http.get<IncidentSummaryDto[]>(`${this.baseUrl}/incidents`, { params });
   }
 
