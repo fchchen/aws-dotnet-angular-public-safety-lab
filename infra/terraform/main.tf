@@ -22,6 +22,12 @@ data "aws_subnets" "default" {
     name   = "vpc-id"
     values = [data.aws_vpc.default.id]
   }
+
+  filter {
+    name   = "availability-zone"
+    values = ["us-east-1a"] # change to 1b/1c/1d/1f if needed
+  }
+
 }
 
 data "aws_ssm_parameter" "al2023" {
@@ -294,15 +300,15 @@ resource "aws_sns_topic_subscription" "billing_email" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "billing_alarm_5" {
-  alarm_name          = "${local.prefix}-billing-5-usd"
+  alarm_name          = "${local.prefix}-billing-025-usd"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = "EstimatedCharges"
   namespace           = "AWS/Billing"
   period              = 21600
   statistic           = "Maximum"
-  threshold           = 5
-  alarm_description   = "Alarm when estimated charges exceed $5"
+  threshold           = 0.25
+  alarm_description   = "Alarm when estimated charges exceed $0.25"
   alarm_actions       = [aws_sns_topic.billing_alerts.arn]
 
   dimensions = {
@@ -311,15 +317,15 @@ resource "aws_cloudwatch_metric_alarm" "billing_alarm_5" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "billing_alarm_15" {
-  alarm_name          = "${local.prefix}-billing-15-usd"
+  alarm_name          = "${local.prefix}-billing-050-usd"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = "EstimatedCharges"
   namespace           = "AWS/Billing"
   period              = 21600
   statistic           = "Maximum"
-  threshold           = 15
-  alarm_description   = "Alarm when estimated charges exceed $15"
+  threshold           = 0.50
+  alarm_description   = "Alarm when estimated charges exceed $0.50"
   alarm_actions       = [aws_sns_topic.billing_alerts.arn]
 
   dimensions = {

@@ -75,6 +75,12 @@ Set these values in `src/PublicSafetyLab.Api/appsettings.json` and `src/PublicSa
 
 Then run API + worker.
 
+### One-Command AWS Dev Run
+After Terraform apply is complete, run all three services (API + worker + web) with:
+```bash
+./scripts/run-aws-dev.sh
+```
+
 ## Provision AWS (Terraform)
 ```bash
 cd infra/terraform
@@ -92,7 +98,7 @@ Outputs include table name, bucket name, queue URL, and EC2 endpoint.
 - DynamoDB on-demand table
 - S3 lifecycle expiration (7 days)
 - SQS standard queue + DLQ
-- Billing alarms at `$5` and `$15`
+- Billing alarms at `$0.25` and `$0.50`
 - One-command teardown: `scripts/destroy-dev.sh`
 
 ## Deployment

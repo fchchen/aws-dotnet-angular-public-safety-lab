@@ -16,6 +16,11 @@ public sealed class SqsIncidentQueueClient(
 
     public async Task PublishAsync(IncidentProcessingMessage message, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(options.Value.IncidentQueueUrl))
+        {
+            throw new InvalidOperationException("AwsResources:IncidentQueueUrl must be configured.");
+        }
+
         var payload = JsonSerializer.Serialize(message, JsonOptions);
         var request = new SendMessageRequest
         {
@@ -28,6 +33,11 @@ public sealed class SqsIncidentQueueClient(
 
     public async Task<IReadOnlyList<IncidentQueueEnvelope>> ReceiveAsync(int maxMessages, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(options.Value.IncidentQueueUrl))
+        {
+            return [];
+        }
+
         var request = new ReceiveMessageRequest
         {
             QueueUrl = options.Value.IncidentQueueUrl,
@@ -37,10 +47,25 @@ public sealed class SqsIncidentQueueClient(
 
         var response = await sqs.ReceiveMessageAsync(request, cancellationToken);
         var envelopes = new List<IncidentQueueEnvelope>();
+        var messages = response?.Messages ?? [];
 
-        foreach (var message in response.Messages)
+        foreach (var message in messages)
         {
-            var deserialized = JsonSerializer.Deserialize<IncidentProcessingMessage>(message.Body, JsonOptions);
+            if (string.IsNullOrWhiteSpace(message.Body) || string.IsNullOrWhiteSpace(message.ReceiptHandle))
+            {
+                continue;
+            }
+
+            IncidentProcessingMessage? deserialized;
+            try
+            {
+                deserialized = JsonSerializer.Deserialize<IncidentProcessingMessage>(message.Body, JsonOptions);
+            }
+            catch (JsonException)
+            {
+                continue;
+            }
+
             if (deserialized is null)
             {
                 continue;
@@ -54,6 +79,11 @@ public sealed class SqsIncidentQueueClient(
 
     public Task DeleteAsync(string receiptHandle, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(options.Value.IncidentQueueUrl))
+        {
+            return Task.CompletedTask;
+        }
+
         var request = new DeleteMessageRequest
         {
             QueueUrl = options.Value.IncidentQueueUrl,

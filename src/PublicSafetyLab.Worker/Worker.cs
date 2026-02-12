@@ -11,7 +11,17 @@ public sealed class Worker(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var messages = await queueConsumer.ReceiveAsync(maxMessages: 5, stoppingToken);
+            IReadOnlyList<IncidentQueueEnvelope> messages;
+            try
+            {
+                messages = await queueConsumer.ReceiveAsync(maxMessages: 5, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to receive messages from incident queue.");
+                await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+                continue;
+            }
 
             foreach (var envelope in messages)
             {
