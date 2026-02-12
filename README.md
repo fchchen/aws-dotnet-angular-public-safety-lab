@@ -43,6 +43,7 @@ dotnet test PublicSafetyLab.sln
 dotnet run --project src/PublicSafetyLab.Api --urls http://localhost:5200
 ```
 API base URL is set to `http://localhost:5200` in local dev commands.
+Swagger UI is available in development at `http://localhost:5200/swagger`.
 
 ### 2) Frontend
 ```bash
@@ -57,6 +58,12 @@ Use `npm run start:plain` if you want Angular dev server without proxy.
 ```bash
 dotnet run --project src/PublicSafetyLab.Worker
 ```
+
+### Evidence Upload from UI
+- Open an incident detail page.
+- Select an image and click `Upload Selected Image`.
+- In local mode (`AwsResources__UseAws=false`), upload is simulated (metadata only).
+- In AWS mode, the browser uploads directly to S3 using the pre-signed URL.
 
 ## AWS Mode (Use Real AWS Services)
 Set these values in `src/PublicSafetyLab.Api/appsettings.json` and `src/PublicSafetyLab.Worker/appsettings.json` or environment variables:

@@ -28,6 +28,11 @@ input {
   font: inherit;
 }
 
+input[type='file'] {
+  padding: 0.25rem 0;
+  border: none;
+}
+
 button {
   justify-self: start;
   background: #1d4ed8;
@@ -50,6 +55,22 @@ button {
 
 .upload-url code {
   word-break: break-all;
+}
+
+.upload-actions {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.upload-meta {
+  margin: 0.65rem 0 0;
+  color: #334155;
+}
+
+.upload-status {
+  margin: 0.65rem 0 0;
+  color: #166534;
 }
 
 ul {

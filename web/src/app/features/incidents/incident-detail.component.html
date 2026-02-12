@@ -14,7 +14,7 @@
   </section>
 
   <section class="panel">
-    <h2>Create Evidence Upload URL</h2>
+    <h2>Upload Evidence Image</h2>
     <form [formGroup]="uploadForm" (ngSubmit)="requestUploadUrl()" class="form-grid">
       <label>
         File name
@@ -29,8 +29,31 @@
       <button type="submit">Generate URL</button>
     </form>
 
+    <div class="upload-actions">
+      <label>
+        Select image
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+      </label>
+      <button type="button" (click)="uploadSelectedFile()" [disabled]="uploadInProgress()">
+        {{ uploadInProgress() ? 'Uploading...' : 'Upload Selected Image' }}
+      </button>
+    </div>
+
+    @if (selectedFileName(); as fileName) {
+      <p class="upload-meta">
+        Selected: <strong>{{ fileName }}</strong>
+        @if (selectedContentType(); as type) {
+          <span> ({{ type }})</span>
+        }
+      </p>
+    }
+
     @if (uploadResult(); as url) {
       <p class="upload-url">Generated URL: <code>{{ url }}</code></p>
+    }
+
+    @if (uploadStatus(); as status) {
+      <p class="upload-status">{{ status }}</p>
     }
   </section>
 

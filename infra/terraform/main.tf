@@ -104,6 +104,18 @@ resource "aws_s3_bucket_lifecycle_configuration" "evidence" {
   }
 }
 
+resource "aws_s3_bucket_cors_configuration" "evidence" {
+  bucket = aws_s3_bucket.evidence.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "HEAD", "PUT"]
+    allowed_origins = ["http://localhost:4200"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+
 resource "aws_sqs_queue" "incident_dlq" {
   name                      = local.incident_dlq
   message_retention_seconds = 1209600
