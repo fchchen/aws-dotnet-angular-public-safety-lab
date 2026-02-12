@@ -40,9 +40,9 @@ Current backend tests:
 ```bash
 dotnet restore PublicSafetyLab.sln
 dotnet test PublicSafetyLab.sln
-dotnet run --project src/PublicSafetyLab.Api
+dotnet run --project src/PublicSafetyLab.Api --urls http://localhost:5200
 ```
-API base URL defaults to `http://localhost:5000` (or the URL shown by ASP.NET).
+API base URL is set to `http://localhost:5200` in local dev commands.
 
 ### 2) Frontend
 ```bash
@@ -50,6 +50,8 @@ cd web
 npm install
 npm start
 ```
+`npm start` now uses `web/proxy.conf.json` so `/api/*` routes to `http://localhost:5200`.
+Use `npm run start:plain` if you want Angular dev server without proxy.
 
 ### 3) Run Worker (optional, in-memory queue by default)
 ```bash
