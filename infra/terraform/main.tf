@@ -195,6 +195,7 @@ data "aws_iam_policy_document" "app_permissions" {
     sid = "DynamoDbAccess"
 
     actions = [
+      "dynamodb:DescribeTable",
       "dynamodb:GetItem",
       "dynamodb:PutItem",
       "dynamodb:Query",
@@ -211,12 +212,14 @@ data "aws_iam_policy_document" "app_permissions" {
     sid = "S3Access"
 
     actions = [
+      "s3:ListBucket",
       "s3:GetObject",
       "s3:PutObject",
       "s3:DeleteObject"
     ]
 
     resources = [
+      aws_s3_bucket.evidence.arn,
       "${aws_s3_bucket.evidence.arn}/*"
     ]
   }
@@ -276,7 +279,7 @@ resource "aws_instance" "app" {
   user_data = <<-EOT
     #!/bin/bash
     dnf update -y
-    dnf install -y docker docker-compose-plugin git
+    dnf install -y docker git
     systemctl enable docker
     systemctl start docker
     usermod -aG docker ec2-user

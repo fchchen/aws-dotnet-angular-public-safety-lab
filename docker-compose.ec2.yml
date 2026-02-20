@@ -11,6 +11,7 @@ services:
       - "8080:8080"
     environment:
       - AwsResources__UseAws=true
+      - AwsResources__StorageProvider=${AWS_STORAGE_PROVIDER}
       - AwsResources__Region=${AWS_REGION}
       - AwsResources__IncidentTableName=${INCIDENT_TABLE_NAME}
       - AwsResources__EvidenceBucketName=${EVIDENCE_BUCKET_NAME}
@@ -26,6 +27,7 @@ services:
       - api
     environment:
       - AwsResources__UseAws=true
+      - AwsResources__StorageProvider=${AWS_STORAGE_PROVIDER}
       - AwsResources__Region=${AWS_REGION}
       - AwsResources__IncidentTableName=${INCIDENT_TABLE_NAME}
       - AwsResources__EvidenceBucketName=${EVIDENCE_BUCKET_NAME}
