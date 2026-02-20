@@ -59,14 +59,18 @@
 
   <section class="panel">
     <h2>Queue Processing</h2>
-    <form [formGroup]="processForm" (ngSubmit)="queueProcessing()" class="form-grid">
-      <label>
-        Reason
-        <input formControlName="reason" />
-      </label>
+    @if (canQueueProcessing()) {
+      <form [formGroup]="processForm" (ngSubmit)="queueProcessing()" class="form-grid">
+        <label>
+          Reason
+          <input formControlName="reason" />
+        </label>
 
-      <button type="submit">Queue</button>
-    </form>
+        <button type="submit">Queue</button>
+      </form>
+    } @else {
+      <p class="queue-note">{{ queueBlockedReason() }}</p>
+    }
   </section>
 
   <section class="panel">

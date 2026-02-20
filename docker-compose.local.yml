@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: public_safety_lab
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d public_safety_lab"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  localstack:
+    image: localstack/localstack:latest
+    restart: unless-stopped
+    environment:
+      SERVICES: s3,sqs
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./infra/localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: src/PublicSafetyLab.Api/Dockerfile
+    image: public-safety-lab-api:local
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    ports:
+      - "5200:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      AwsResources__UseAws: "true"
+      AwsResources__StorageProvider: PostgreSql
+      AwsResources__PostgreSqlConnectionString: Host=postgres;Port=5432;Database=public_safety_lab;Username=postgres;Password=postgres
+      AwsResources__Region: us-east-1
+      AwsResources__ServiceUrl: http://localstack:4566
+      AwsResources__AccessKeyId: test
+      AwsResources__SecretAccessKey: test
+      AwsResources__EvidenceBucketName: public-safety-lab-evidence-dev
+      AwsResources__IncidentQueueUrl: http://localstack:4566/000000000000/incident-events-dev
+      Database__AutoMigrateOnStartup: "true"
+      Authentication__AllowLegacyTenantHeader: "true"
+      Authentication__ApiKeys__0__Key: demo-api-key
+      Authentication__ApiKeys__0__TenantId: demo
+
+  worker:
+    build:
+      context: .
+      dockerfile: src/PublicSafetyLab.Worker/Dockerfile
+    image: public-safety-lab-worker:local
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+      api:
+        condition: service_started
+    environment:
+      AwsResources__UseAws: "true"
+      AwsResources__StorageProvider: PostgreSql
+      AwsResources__PostgreSqlConnectionString: Host=postgres;Port=5432;Database=public_safety_lab;Username=postgres;Password=postgres
+      AwsResources__Region: us-east-1
+      AwsResources__ServiceUrl: http://localstack:4566
+      AwsResources__AccessKeyId: test
+      AwsResources__SecretAccessKey: test
+      AwsResources__EvidenceBucketName: public-safety-lab-evidence-dev
+      AwsResources__IncidentQueueUrl: http://localstack:4566/000000000000/incident-events-dev

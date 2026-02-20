@@ -30,6 +30,7 @@ describe('IncidentApiService', () => {
 
     const request = httpMock.expectOne('/api/v1/incidents');
     expect(request.request.method).toBe('GET');
+    expect(request.request.headers.get('X-Api-Key')).toBe('demo-api-key');
     request.flush([]);
   });
 });

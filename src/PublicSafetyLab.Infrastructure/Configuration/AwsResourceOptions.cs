@@ -6,6 +6,10 @@ public sealed class AwsResourceOptions
 
     public bool UseAws { get; set; }
 
+    public string? StorageProvider { get; set; }
+
+    public string? PostgreSqlConnectionString { get; set; }
+
     public string Region { get; set; } = "us-east-1";
 
     public string? ServiceUrl { get; set; }

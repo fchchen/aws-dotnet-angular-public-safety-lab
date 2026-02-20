@@ -86,7 +86,8 @@ public sealed class IncidentService(
         string tenantId,
         Guid incidentId,
         string? reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? correlationId = null)
     {
         var incident = await repository.GetAsync(tenantId, incidentId, cancellationToken)
             ?? throw new NotFoundException($"Incident {incidentId} was not found for tenant {tenantId}.");
@@ -98,7 +99,7 @@ public sealed class IncidentService(
             MessageType: "IncidentProcessingRequested",
             TenantId: tenantId,
             IncidentId: incidentId,
-            CorrelationId: Guid.NewGuid().ToString("N"),
+            CorrelationId: string.IsNullOrWhiteSpace(correlationId) ? Guid.NewGuid().ToString("N") : correlationId.Trim(),
             OccurredAt: clock.UtcNow,
             Reason: reason);
 

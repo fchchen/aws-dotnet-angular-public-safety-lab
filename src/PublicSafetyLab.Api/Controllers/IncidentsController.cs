@@ -1,19 +1,30 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using PublicSafetyLab.Api.Authentication;
+using PublicSafetyLab.Api.Middleware;
 using PublicSafetyLab.Application.Incidents;
 using PublicSafetyLab.Contracts.Incidents;
 
 namespace PublicSafetyLab.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/incidents")]
-public sealed class IncidentsController(IncidentService incidentService) : ControllerBase
+public sealed class IncidentsController(
+    IncidentService incidentService,
+    IOptions<ApiKeyAuthenticationOptions> authOptions) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<IncidentDetailDto>> CreateIncident(
         [FromBody] CreateIncidentRequest request,
         CancellationToken cancellationToken)
     {
-        var tenantId = ResolveTenantId();
+        if (!TryResolveTenantId(out var tenantId))
+        {
+            return Unauthorized();
+        }
+
         var created = await incidentService.CreateIncidentAsync(tenantId, request, cancellationToken);
 
         return CreatedAtAction(
@@ -29,7 +40,11 @@ public sealed class IncidentsController(IncidentService incidentService) : Contr
         [FromQuery] DateTimeOffset? to,
         CancellationToken cancellationToken)
     {
-        var tenantId = ResolveTenantId();
+        if (!TryResolveTenantId(out var tenantId))
+        {
+            return Unauthorized();
+        }
+
         var incidents = await incidentService.ListIncidentsAsync(tenantId, status, from, to, cancellationToken);
 
         return Ok(incidents);
@@ -40,7 +55,11 @@ public sealed class IncidentsController(IncidentService incidentService) : Contr
         Guid incidentId,
         CancellationToken cancellationToken)
     {
-        var tenantId = ResolveTenantId();
+        if (!TryResolveTenantId(out var tenantId))
+        {
+            return Unauthorized();
+        }
+
         var incident = await incidentService.GetIncidentAsync(tenantId, incidentId, cancellationToken);
 
         return Ok(incident);
@@ -52,7 +71,11 @@ public sealed class IncidentsController(IncidentService incidentService) : Contr
         [FromBody] UploadEvidenceUrlRequest request,
         CancellationToken cancellationToken)
     {
-        var tenantId = ResolveTenantId();
+        if (!TryResolveTenantId(out var tenantId))
+        {
+            return Unauthorized();
+        }
+
         var upload = await incidentService.CreateEvidenceUploadUrlAsync(tenantId, incidentId, request, cancellationToken);
 
         return Ok(upload);
@@ -64,18 +87,56 @@ public sealed class IncidentsController(IncidentService incidentService) : Contr
         [FromBody] QueueIncidentProcessingRequest request,
         CancellationToken cancellationToken)
     {
-        var tenantId = ResolveTenantId();
-        await incidentService.QueueIncidentProcessingAsync(tenantId, incidentId, request.Reason, cancellationToken);
+        if (!TryResolveTenantId(out var tenantId))
+        {
+            return Unauthorized();
+        }
+
+        await incidentService.QueueIncidentProcessingAsync(
+            tenantId,
+            incidentId,
+            request.Reason,
+            cancellationToken,
+            ResolveCorrelationId());
         return Accepted();
     }
 
-    private string ResolveTenantId()
+    private bool TryResolveTenantId(out string tenantId)
     {
-        if (Request.Headers.TryGetValue("X-Tenant-Id", out var tenantId) && !string.IsNullOrWhiteSpace(tenantId))
+        var claimTenantId = User.FindFirst(ApiKeyAuthenticationHandler.TenantIdClaimType)?.Value;
+        if (!string.IsNullOrWhiteSpace(claimTenantId))
         {
-            return tenantId.ToString().Trim();
+            tenantId = claimTenantId.Trim();
+            return true;
         }
 
-        return "demo";
+        if (authOptions.Value.AllowLegacyTenantHeader &&
+            Request.Headers.TryGetValue(ApiKeyAuthenticationHandler.LegacyTenantHeaderName, out var legacyTenantHeader) &&
+            !string.IsNullOrWhiteSpace(legacyTenantHeader))
+        {
+            tenantId = legacyTenantHeader.ToString().Trim();
+            return true;
+        }
+
+        tenantId = string.Empty;
+        return false;
+    }
+
+    private string ResolveCorrelationId()
+    {
+        if (HttpContext.Items.TryGetValue(CorrelationIdMiddleware.ItemKey, out var value) &&
+            value is string fromItems &&
+            !string.IsNullOrWhiteSpace(fromItems))
+        {
+            return fromItems;
+        }
+
+        if (Request.Headers.TryGetValue(CorrelationIdMiddleware.HeaderName, out var header) &&
+            !string.IsNullOrWhiteSpace(header))
+        {
+            return header.ToString().Trim();
+        }
+
+        return Guid.NewGuid().ToString("N");
     }
 }

@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom, switchMap } from 'rxjs';
 import { IncidentApiService } from '../../core/incident-api.service';
-import { IncidentDetailDto } from '../../core/incident.models';
+import { IncidentDetailDto, IncidentStatus } from '../../core/incident.models';
 
 @Component({
   selector: 'app-incident-detail',
@@ -29,6 +29,11 @@ export class IncidentDetailComponent implements OnInit {
   readonly selectedContentType = signal<string | null>(null);
 
   readonly hasIncident = computed(() => this.incident() !== null);
+  readonly canQueueProcessing = computed(() => {
+    const status = this.incident()?.status;
+    return status === 'New' || status === 'Failed';
+  });
+  readonly queueBlockedReason = computed(() => this.getQueueBlockedReason(this.incident()?.status));
 
   readonly uploadForm = this.formBuilder.nonNullable.group({
     fileName: ['', Validators.required],
@@ -161,7 +166,8 @@ export class IncidentDetailComponent implements OnInit {
 
   queueProcessing(): void {
     const current = this.incident();
-    if (!current) {
+    if (!current || !this.canQueueProcessing()) {
+      this.error.set(this.queueBlockedReason());
       return;
     }
 
@@ -178,6 +184,18 @@ export class IncidentDetailComponent implements OnInit {
           this.error.set('Unable to queue processing.');
         }
       });
+  }
+
+  private getQueueBlockedReason(status?: IncidentStatus): string {
+    if (status === 'Processed') {
+      return 'This incident is already processed and cannot be queued again.';
+    }
+
+    if (status === 'Queued') {
+      return 'This incident is already queued for processing.';
+    }
+
+    return '';
   }
 
   private reload(incidentId: string): void {

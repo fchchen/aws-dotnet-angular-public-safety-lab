@@ -2,17 +2,21 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using PublicSafetyLab.Contracts.Incidents;
 
 namespace PublicSafetyLab.Api.Tests.Incidents;
 
 public sealed class IncidentApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
 
     public IncidentApiTests(WebApplicationFactory<Program> factory)
     {
+        _factory = factory;
         _client = factory.WithWebHostBuilder(_ => { }).CreateClient();
+        _client.DefaultRequestHeaders.Add("X-Api-Key", "demo-api-key");
         _client.DefaultRequestHeaders.Add("X-Tenant-Id", "demo");
     }
 
@@ -65,5 +69,31 @@ public sealed class IncidentApiTests : IClassFixture<WebApplicationFactory<Progr
         var loaded = await getResponse.Content.ReadFromJsonAsync<IncidentDetailDto>();
 
         loaded!.Status.Should().Be(IncidentStatus.Queued);
+    }
+
+    [Fact]
+    public async Task CreateIncident_WithoutApiKey_InStrictMode_ShouldReturnUnauthorized()
+    {
+        var strictFactory = _factory.WithWebHostBuilder(builder =>
+            builder.ConfigureAppConfiguration((_, config) =>
+            {
+                config.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["Authentication:AllowLegacyTenantHeader"] = "false"
+                });
+            }));
+
+        var client = strictFactory.CreateClient();
+
+        var request = new CreateIncidentRequest(
+            Title: "Unauthorized request",
+            Description: "No API key should be rejected",
+            Priority: "High",
+            Location: "1st St",
+            ReportedAt: DateTimeOffset.UtcNow);
+
+        var response = await client.PostAsJsonAsync("/api/v1/incidents", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }

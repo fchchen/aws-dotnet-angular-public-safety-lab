@@ -15,6 +15,11 @@ import {
 export class IncidentApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = inject(API_BASE_URL);
+  private readonly apiKey = 'demo-api-key';
+
+  private get authHeaders(): { [header: string]: string } {
+    return { 'X-Api-Key': this.apiKey };
+  }
 
   listIncidents(status?: string): Observable<IncidentSummaryDto[]> {
     let params = new HttpParams();
@@ -22,15 +27,22 @@ export class IncidentApiService {
       params = params.set('status', status);
     }
 
-    return this.http.get<IncidentSummaryDto[]>(`${this.baseUrl}/incidents`, { params });
+    return this.http.get<IncidentSummaryDto[]>(`${this.baseUrl}/incidents`, {
+      params,
+      headers: this.authHeaders
+    });
   }
 
   createIncident(request: CreateIncidentRequest): Observable<IncidentDetailDto> {
-    return this.http.post<IncidentDetailDto>(`${this.baseUrl}/incidents`, request);
+    return this.http.post<IncidentDetailDto>(`${this.baseUrl}/incidents`, request, {
+      headers: this.authHeaders
+    });
   }
 
   getIncident(incidentId: string): Observable<IncidentDetailDto> {
-    return this.http.get<IncidentDetailDto>(`${this.baseUrl}/incidents/${incidentId}`);
+    return this.http.get<IncidentDetailDto>(`${this.baseUrl}/incidents/${incidentId}`, {
+      headers: this.authHeaders
+    });
   }
 
   createUploadUrl(
@@ -39,7 +51,10 @@ export class IncidentApiService {
   ): Observable<UploadEvidenceUrlResponse> {
     return this.http.post<UploadEvidenceUrlResponse>(
       `${this.baseUrl}/incidents/${incidentId}/evidence/upload-url`,
-      request
+      request,
+      {
+        headers: this.authHeaders
+      }
     );
   }
 
@@ -47,6 +62,8 @@ export class IncidentApiService {
     incidentId: string,
     request: QueueIncidentProcessingRequest
   ): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/incidents/${incidentId}/process`, request);
+    return this.http.post<void>(`${this.baseUrl}/incidents/${incidentId}/process`, request, {
+      headers: this.authHeaders
+    });
   }
 }

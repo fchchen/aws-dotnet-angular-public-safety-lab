@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: public-safety-lab-api
+  labels:
+    app: public-safety-lab-api
+spec:
+  type: ClusterIP
+  selector:
+    app: public-safety-lab-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
