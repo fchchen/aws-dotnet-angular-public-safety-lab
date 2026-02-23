@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSingleton<IncidentService>();
 builder.Services.AddPublicSafetyInfrastructure(builder.Configuration);
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -22,6 +23,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapHealthChecks("/healthz/live");
+app.MapHealthChecks("/healthz/ready");
 app.UseMiddleware<ApiExceptionHandlingMiddleware>();
 app.MapControllers();
 
