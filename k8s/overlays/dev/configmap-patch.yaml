@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: public-safety-lab-config
+data:
+  ASPNETCORE_ENVIRONMENT: Development
+  AwsResources__ServiceUrl: http://localstack:4566
+  AwsResources__EvidenceBucketName: public-safety-lab-evidence-dev
+  AwsResources__IncidentQueueUrl: http://localstack:4566/000000000000/incident-events-dev
+  Database__AutoMigrateOnStartup: "true"
+  Authentication__AllowLegacyTenantHeader: "true"

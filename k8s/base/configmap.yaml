@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: public-safety-lab-config
+data:
+  ASPNETCORE_ENVIRONMENT: Production
+  AwsResources__UseAws: "true"
+  AwsResources__StorageProvider: PostgreSql
+  AwsResources__Region: us-east-1
+  AwsResources__ServiceUrl: ""
+  AwsResources__IncidentTableName: incident_items
+  AwsResources__EvidenceBucketName: public-safety-lab-evidence-prod
+  AwsResources__IncidentQueueUrl: https://sqs.us-east-1.amazonaws.com/123456789012/incident-events-prod
+  Database__AutoMigrateOnStartup: "false"
+  Authentication__AllowLegacyTenantHeader: "false"
