@@ -2,6 +2,21 @@
 
 Full-stack incident management system built as a portfolio project to demonstrate production-level architecture across the .NET, Angular, and AWS ecosystem. Models a first-responder workflow — operators create incidents, upload evidence to S3, and dispatch async processing through SQS — all backed by DynamoDB (or Postgres), Terraform IaC, Kubernetes manifests, and a CI/CD pipeline. Every feature starts with a failing test.
 
+### Incident Dashboard
+![Incident Dashboard](docs/screenshots/incident-dashboard.png)
+
+### Incident Detail — Evidence Upload & Queue Processing
+![Incident Detail](docs/screenshots/incident-detail.png)
+
+### Swagger API
+![Swagger API](docs/screenshots/swagger-api.png)
+
+### Kubernetes Cluster
+![Kubernetes Cluster](docs/screenshots/k8s-cluster.png)
+
+### Test Results — 11 tests, 3 assemblies, 0 failures
+![Test Results](docs/screenshots/test-results.png)
+
 ## Architecture
 
 ```
