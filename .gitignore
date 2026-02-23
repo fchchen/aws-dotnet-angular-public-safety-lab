@@ -12,6 +12,7 @@ coverage/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
+terraform.tfvars
 
 # IDE
 .vscode/
