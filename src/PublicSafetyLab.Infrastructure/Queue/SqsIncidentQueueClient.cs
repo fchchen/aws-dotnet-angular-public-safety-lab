@@ -42,7 +42,7 @@ public sealed class SqsIncidentQueueClient(
         {
             QueueUrl = options.Value.IncidentQueueUrl,
             MaxNumberOfMessages = Math.Clamp(maxMessages, 1, 10),
-            WaitTimeSeconds = 1
+            WaitTimeSeconds = 20
         };
 
         var response = await sqs.ReceiveMessageAsync(request, cancellationToken);
