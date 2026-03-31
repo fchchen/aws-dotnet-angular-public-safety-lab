@@ -50,5 +50,6 @@ jobs:
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@$EC2_HOST \
-            'cd ~/public-safety-lab && docker compose -f docker-compose.ec2.yml up -d --build'
+          ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=10 \
+            -i ~/.ssh/id_rsa ec2-user@$EC2_HOST \
+            'cd ~/public-safety-lab && docker compose -f docker-compose.ec2.yml up -d --build 2>&1'
